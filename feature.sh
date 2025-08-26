@@ -7,10 +7,12 @@ FEATURE_NAME=$1
 
 BASE_PATH="src/features/$FEATURE_NAME"
 
-mkdir -p $BASE_PATH/data/data_source
+mkdir -p $BASE_PATH/data/datasource
 mkdir -p $BASE_PATH/data/repositories
-mkdir -p $BASE_PATH/domain/hooks
-mkdir -p $BASE_PATH/domain/irepositories
-mkdir -p $BASE_PATH/domain/interfaces
+mkdir -p $BASE_PATH/data/mappers
+mkdir -p $BASE_PATH/domain/repositories
+mkdir -p $BASE_PATH/domain/entities
+mkdir -p $BASE_PATH/application/use_cases
+mkdir -p $BASE_PATH/application/hooks
 mkdir -p $BASE_PATH/presentation/pages
 mkdir -p $BASE_PATH/presentation/components
