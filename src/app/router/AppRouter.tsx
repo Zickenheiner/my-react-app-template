@@ -5,7 +5,7 @@ import PublicRoute from './PublicRoute';
 export default function AppRouter() {
   const PublicRoutes = () => {
     return (
-      <Route path="/" element={<PublicRoute dashboardLocation="/" />}>
+      <Route path="/" element={<PublicRoute homeLocation="/" />}>
         <Route path="/login" element={<h1>Public Route</h1>} />
       </Route>
     );

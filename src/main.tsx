@@ -1,12 +1,10 @@
 import './index.css';
 import { createRoot } from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import AppRouter from './config/routes/AppRouter';
-
-const queryClient = new QueryClient();
+import AppRouter from './app/router/AppRouter';
+import AppProvider from './app/AppProvider';
 
 createRoot(document.getElementById('root')!).render(
-  <QueryClientProvider client={queryClient}>
+  <AppProvider>
     <AppRouter />
-  </QueryClientProvider>,
+  </AppProvider>,
 );

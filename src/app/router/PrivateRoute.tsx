@@ -1,3 +1,4 @@
+import { useSessionStore } from '@/core/stores/session';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 interface PrivateRouteProps {
@@ -5,10 +6,10 @@ interface PrivateRouteProps {
 }
 
 export default function PrivateRoute({ loginLocation }: PrivateRouteProps) {
-  const isConnected = false; // Replace with actual connection logic
+  const isAuthenticated = useSessionStore((state) => state.isAuthenticated);
   const location = useLocation();
 
-  return isConnected ? (
+  return isAuthenticated ? (
     <Outlet />
   ) : (
     <Navigate to={loginLocation} state={{ from: location }} replace />
