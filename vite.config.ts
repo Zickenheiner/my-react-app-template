@@ -13,9 +13,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
-      '@app': '/src/app',
-      '@core': '/src/core',
-      '@features': '/src/features',
     },
   },
 });
