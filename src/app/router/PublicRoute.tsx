@@ -8,7 +8,6 @@ interface PublicRouteProps {
 export default function PublicRoute({ homeLocation }: PublicRouteProps) {
   const isAuthenticated = useSessionStore((state) => state.isAuthenticated);
   const location = useLocation();
-  console.log(location);
 
   return !isAuthenticated ? (
     <Outlet />
