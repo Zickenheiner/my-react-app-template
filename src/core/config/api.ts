@@ -1,6 +1,8 @@
+import { ApiError } from '../errors/api.error';
+
 interface Config {
   url: string;
-  method: string;
+  method: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   headers?: HeadersInit;
   data?: any;
   requireToken?: boolean;
@@ -12,9 +14,15 @@ export const request = async (config: Config) => {
     headers: config.headers,
     body: config.data,
   });
-  return response;
+  if (!response.ok) throw new ApiError(response.statusText, response.status);
+  return await response.json();
 };
 
-export const endpoints = {
-  users: 'users/',
+export const endpoints = {};
+
+export const methods = {
+  post: 'POST',
+  get: 'GET',
+  patch: 'PATCH',
+  delete: 'DELETE',
 };
