@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 feature.sh
+files.sh
 
 # Editor directories and files
 .env
