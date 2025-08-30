@@ -1,3 +1,4 @@
+#!/bin/bash
 if [ $# -eq 0 ]; then
     echo "Usage: $0 <feature-name>"
     exit 1
@@ -19,6 +20,3 @@ mkdir -p $BASE_PATH/application/ports
 mkdir -p $BASE_PATH/presentation/hooks
 mkdir -p $BASE_PATH/presentation/pages
 mkdir -p $BASE_PATH/presentation/components
-
-
-
