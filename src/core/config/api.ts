@@ -11,7 +11,10 @@ interface Config {
 export const request = async <T = unknown>(config: Config): Promise<T> => {
   const init: RequestInit = {
     method: config.method,
-    headers: config.headers,
+    headers: {
+      'Content-Type': 'application/json',
+      ...config.headers,
+    },
     body: JSON.stringify(config.data),
   };
   const response: Response = await fetch(
