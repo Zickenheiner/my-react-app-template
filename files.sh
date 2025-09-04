@@ -5,90 +5,83 @@ if [ $# -ne 2 ]; then
 fi
 
 FILE_NAME=$1
-FILE_NAME_CAPITALIZED=$(echo "$FILE_NAME" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+FILE_NAME_LOWER=$(echo $FILE_NAME | tr '[:upper:]' '[:lower:]')
+FILE_NAME_PASCALE=$(echo $FILE_NAME | perl -pe 's/\b([a-z])/\u$1/g')
+
 FEATURE_NAME=$2
-BASE_PATH="src/features/$FEATURE_NAME"
+FEATURE_NAME_LOWER=$(echo $FEATURE_NAME | tr '[:upper:]' '[:lower:]')
+
+BASE_PATH="src/features/$FEATURE_NAME_LOWER"
 
 if [ ! -d "$BASE_PATH" ]; then
   ./feature.sh $FEATURE_NAME
 fi
 
 # Create the files
-touch $BASE_PATH/data/datasources/${FILE_NAME}.api.ts
-touch $BASE_PATH/data/repositories/${FILE_NAME}.repository.impl.ts
-touch $BASE_PATH/data/mappers/${FILE_NAME}.mapper.ts
-touch $BASE_PATH/data/dtos/${FILE_NAME}.dto.ts
-touch $BASE_PATH/domain/repositories/${FILE_NAME}.repository.ts
-touch $BASE_PATH/domain/entities/${FILE_NAME}.entity.ts
-touch $BASE_PATH/application/use-cases/${FILE_NAME}.usecase.ts
-touch $BASE_PATH/presentation/hooks/${FILE_NAME}.hook.ts
+touch $BASE_PATH/data/datasources/${FILE_NAME_LOWER}.api.ts
+touch $BASE_PATH/data/repositories/${FILE_NAME_LOWER}.repository.impl.ts
+touch $BASE_PATH/data/mappers/${FILE_NAME_LOWER}.mapper.ts
+touch $BASE_PATH/data/dtos/${FILE_NAME_LOWER}.dto.ts
+touch $BASE_PATH/domain/repositories/${FILE_NAME_LOWER}.repository.ts
+touch $BASE_PATH/domain/entities/${FILE_NAME_LOWER}.entity.ts
+touch $BASE_PATH/presentation/hooks/${FILE_NAME_LOWER}.hook.ts
+mkdir -p $BASE_PATH/application/use-cases/${FILE_NAME_LOWER}
 
-# Add boilerplate code to the files
+# Generate base content for each file
 echo "import { endpoints, methods, request } from '@/core/config/api';
-import type { ${FILE_NAME_CAPITALIZED}ResponseDto } from '../dtos/${FILE_NAME}.dto';
+import type { ${FILE_NAME_PASCALE}ResponseDto } from '../dtos/${FILE_NAME_LOWER}.dto';
 
-class ${FILE_NAME_CAPITALIZED}Api {
-  constructor(private readonly ${FILE_NAME}BaseUrl: string = endpoints.${FILE_NAME}) {}
+class ${FILE_NAME_PASCALE}Api {
+  constructor(private readonly ${FILE_NAME_LOWER}BaseUrl: string = endpoints.${FILE_NAME_LOWER}) {}
 
   // Define your API methods here
 }
 
-export default ${FILE_NAME_CAPITALIZED}Api;" > $BASE_PATH/data/datasources/${FILE_NAME}.api.ts
+export default ${FILE_NAME_PASCALE}Api;" > $BASE_PATH/data/datasources/${FILE_NAME_LOWER}.api.ts
 
-echo "import type { ${FILE_NAME_CAPITALIZED}Repository } from '../../domain/repositories/${FILE_NAME}.repository';
-import type { ${FILE_NAME_CAPITALIZED}Entity } from '../../domain/entities/${FILE_NAME}.entity';
-import ${FILE_NAME_CAPITALIZED}Api from '../datasources/${FILE_NAME}.api';
-import ${FILE_NAME_CAPITALIZED}Mapper from '../mappers/${FILE_NAME}.mapper';
+echo "import type { ${FILE_NAME_PASCALE}Repository } from '../../domain/repositories/${FILE_NAME_LOWER}.repository';
+import type { ${FILE_NAME_PASCALE}Entity } from '../../domain/entities/${FILE_NAME_LOWER}.entity';
+import ${FILE_NAME_PASCALE}Api from '../datasources/${FILE_NAME_LOWER}.api';
+import ${FILE_NAME_PASCALE}Mapper from '../mappers/${FILE_NAME_LOWER}.mapper';
 
-class ${FILE_NAME_CAPITALIZED}RepositoryImpl implements ${FILE_NAME_CAPITALIZED}Repository {
+class ${FILE_NAME_PASCALE}RepositoryImpl implements ${FILE_NAME_PASCALE}Repository {
   constructor(
-    private readonly ${FILE_NAME}Api: ${FILE_NAME_CAPITALIZED}Api = new ${FILE_NAME_CAPITALIZED}Api(),
-    private readonly ${FILE_NAME}Mapper: ${FILE_NAME_CAPITALIZED}Mapper = new ${FILE_NAME_CAPITALIZED}Mapper(),
+    private readonly ${FILE_NAME_LOWER}Api: ${FILE_NAME_PASCALE}Api = new ${FILE_NAME_PASCALE}Api(),
+    private readonly ${FILE_NAME_LOWER}Mapper: ${FILE_NAME_PASCALE}Mapper = new ${FILE_NAME_PASCALE}Mapper(),
   ) {}
 
   // Define your repository methods here
 }
 
-export default ${FILE_NAME_CAPITALIZED}RepositoryImpl;" > $BASE_PATH/data/repositories/${FILE_NAME}.repository.impl.ts
+export default ${FILE_NAME_PASCALE}RepositoryImpl;" > $BASE_PATH/data/repositories/${FILE_NAME_LOWER}.repository.impl.ts
 
-echo "import type { ${FILE_NAME_CAPITALIZED}Entity } from '../../domain/entities/${FILE_NAME}.entity';
-import type { ${FILE_NAME_CAPITALIZED}ResponseDto } from '../dtos/${FILE_NAME}.dto';
+echo "import type { ${FILE_NAME_PASCALE}Entity } from '../../domain/entities/${FILE_NAME_LOWER}.entity';
+import type { ${FILE_NAME_PASCALE}ResponseDto } from '../dtos/${FILE_NAME_LOWER}.dto';
 
-class ${FILE_NAME_CAPITALIZED}Mapper {
-  toEntity(dto: ${FILE_NAME_CAPITALIZED}ResponseDto): ${FILE_NAME_CAPITALIZED}Entity {
+class ${FILE_NAME_PASCALE}Mapper {
+  toEntity(dto: ${FILE_NAME_PASCALE}ResponseDto): ${FILE_NAME_PASCALE}Entity {
     return {
         // Map fields from dto to entity here
     };
   }
 }
 
-export default ${FILE_NAME_CAPITALIZED}Mapper;" > $BASE_PATH/data/mappers/${FILE_NAME}.mapper.ts
+export default ${FILE_NAME_PASCALE}Mapper;" > $BASE_PATH/data/mappers/${FILE_NAME_LOWER}.mapper.ts
 
-echo "export interface ${FILE_NAME_CAPITALIZED}RequestDto {
-  // Define the properties of the ${FILE_NAME_CAPITALIZED}RequestDto here
+echo "export interface ${FILE_NAME_PASCALE}RequestDto {
+  // Define the properties of the ${FILE_NAME_PASCALE}RequestDto here
 }
 
-export interface ${FILE_NAME_CAPITALIZED}ResponseDto {
-    // Define the properties of the ${FILE_NAME_CAPITALIZED}ResponseDto here
-}" > $BASE_PATH/data/dtos/${FILE_NAME}.dto.ts
+export interface ${FILE_NAME_PASCALE}ResponseDto {
+    // Define the properties of the ${FILE_NAME_PASCALE}ResponseDto here
+}" > $BASE_PATH/data/dtos/${FILE_NAME_LOWER}.dto.ts
 
-echo "import type { ${FILE_NAME_CAPITALIZED}Entity } from '../entities/${FILE_NAME}.entity';
+echo "import type { ${FILE_NAME_PASCALE}Entity } from '../entities/${FILE_NAME_LOWER}.entity';
 
-export interface ${FILE_NAME_CAPITALIZED}Repository {
-    // Define the methods for the ${FILE_NAME_CAPITALIZED}Repository here
-}" > $BASE_PATH/domain/repositories/${FILE_NAME}.repository.ts
+export interface ${FILE_NAME_PASCALE}Repository {
+    // Define the methods for the ${FILE_NAME_PASCALE}Repository here
+}" > $BASE_PATH/domain/repositories/${FILE_NAME_LOWER}.repository.ts
 
-echo "export interface ${FILE_NAME_CAPITALIZED}Entity {
-  // Define the properties of the ${FILE_NAME_CAPITALIZED}Entity here
-}" > $BASE_PATH/domain/entities/${FILE_NAME}.entity.ts
-
-echo "import type { ${FILE_NAME_CAPITALIZED}Repository } from '../../domain/repositories/${FILE_NAME}.repository';
-import type { ${FILE_NAME_CAPITALIZED}Entity } from '../../domain/entities/${FILE_NAME}.entity';
-
-class ${FILE_NAME_CAPITALIZED}Usecase {
-  constructor(private readonly repository: ${FILE_NAME_CAPITALIZED}Repository) {}
-
-  // Define your use case methods here
-}
-
-export default ${FILE_NAME_CAPITALIZED}Usecase;" > $BASE_PATH/application/use-cases/${FILE_NAME}.usecase.ts
+echo "export interface ${FILE_NAME_PASCALE}Entity {
+  // Define the properties of the ${FILE_NAME_PASCALE}Entity here
+}" > $BASE_PATH/domain/entities/${FILE_NAME_LOWER}.entity.ts

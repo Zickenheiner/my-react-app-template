@@ -16,12 +16,18 @@ export const request = async <T = unknown>(config: Config): Promise<T> => {
       ...config.headers,
     },
     body: JSON.stringify(config.data),
+    credentials: 'include',
   };
+
+  if (config.requireToken === false) init.credentials = 'omit';
+
   const response: Response = await fetch(
     `${import.meta.env.VITE_API_URL}${config.url}`,
     init,
   );
+
   if (!response.ok) throw new ApiError(response.statusText, response.status);
+
   return await response.json();
 };
 
@@ -30,6 +36,6 @@ export const methods = {
   GET: 'GET',
   PATCH: 'PATCH',
   DELETE: 'DELETE',
-};
+} as const;
 
 export const endpoints = {};
