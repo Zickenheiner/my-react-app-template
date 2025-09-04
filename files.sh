@@ -85,3 +85,5 @@ export interface ${FILE_NAME_PASCALE}Repository {
 echo "export interface ${FILE_NAME_PASCALE}Entity {
   // Define the properties of the ${FILE_NAME_PASCALE}Entity here
 }" > $BASE_PATH/domain/entities/${FILE_NAME_LOWER}.entity.ts
+
+echo "Files created successfully: $FILE_NAME_PASCAL"
