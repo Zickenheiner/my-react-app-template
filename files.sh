@@ -24,8 +24,7 @@ touch $BASE_PATH/data/mappers/${FILE_NAME_LOWER}.mapper.ts
 touch $BASE_PATH/data/dtos/${FILE_NAME_LOWER}.dto.ts
 touch $BASE_PATH/domain/repositories/${FILE_NAME_LOWER}.repository.ts
 touch $BASE_PATH/domain/entities/${FILE_NAME_LOWER}.entity.ts
-touch $BASE_PATH/presentation/hooks/${FILE_NAME_LOWER}.hook.ts
-mkdir -p $BASE_PATH/application/use-cases/${FILE_NAME_LOWER}
+touch $BASE_PATH/domain/hooks/${FILE_NAME_LOWER}.hook.ts
 
 # Generate base content for each file
 echo "import { endpoints, methods, request } from '@/core/config/api';

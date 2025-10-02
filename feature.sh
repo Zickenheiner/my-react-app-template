@@ -20,9 +20,7 @@ mkdir -p $BASE_PATH/data/mappers
 mkdir -p $BASE_PATH/data/dtos
 mkdir -p $BASE_PATH/domain/repositories
 mkdir -p $BASE_PATH/domain/entities
-mkdir -p $BASE_PATH/application/use-cases
-mkdir -p $BASE_PATH/application/ports
-mkdir -p $BASE_PATH/presentation/hooks
+mkdir -p $BASE_PATH/domain/hooks
 mkdir -p $BASE_PATH/presentation/pages
 mkdir -p $BASE_PATH/presentation/components
 
