@@ -1,4 +1,4 @@
-import { SessionStore } from '@/core/stores/session';
+import { getAccessToken } from '@/core/stores/accessToken.store';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 interface PublicRouteProps {
@@ -6,10 +6,10 @@ interface PublicRouteProps {
 }
 
 export default function PublicRoute({ homeLocation }: PublicRouteProps) {
-  const { isConnected } = SessionStore();
   const location = useLocation();
+  const isAuthenticated = !!getAccessToken();
 
-  return !isConnected ? (
+  return !isAuthenticated ? (
     <Outlet />
   ) : (
     <Navigate to={homeLocation} state={{ from: location }} replace />
