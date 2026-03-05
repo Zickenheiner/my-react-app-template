@@ -27,8 +27,10 @@ touch $BASE_PATH/domain/entities/${FILE_NAME_LOWER}.entity.ts
 touch $BASE_PATH/domain/hooks/${FILE_NAME_LOWER}.hook.ts
 
 # Generate base content for each file
-echo "import { endpoints, methods, request } from '@/core/config/api';
-import type { ${FILE_NAME_PASCALE}ResponseDto } from '../dtos/${FILE_NAME_LOWER}.dto';
+echo "import endpoints from '@/core/constants/endpoints';
+import request from '@/core/config/api';
+import methods from '@/core/constants/methods';
+import type { ${FILE_NAME_PASCALE}RequestDto, ${FILE_NAME_PASCALE}ResponseDto } from '../dtos/${FILE_NAME_LOWER}.dto';
 
 class ${FILE_NAME_PASCALE}Api {
   constructor(private readonly ${FILE_NAME_LOWER}BaseUrl: string = endpoints.${FILE_NAME_LOWER}) {}

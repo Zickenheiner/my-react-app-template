@@ -11,7 +11,7 @@ interface Config {
   requireToken?: boolean;
 }
 
-export const request = async <T = unknown>(config: Config): Promise<T> => {
+const request = async <T = unknown>(config: Config): Promise<T> => {
   const init: RequestInit = {
     method: config.method,
     headers: {
@@ -48,11 +48,4 @@ export const request = async <T = unknown>(config: Config): Promise<T> => {
   return await response.json();
 };
 
-export const methods = {
-  POST: 'POST',
-  GET: 'GET',
-  PATCH: 'PATCH',
-  DELETE: 'DELETE',
-} as const;
-
-export const endpoints = {};
+export default request;
