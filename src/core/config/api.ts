@@ -1,5 +1,5 @@
 import { ApiError } from '../errors/api.error';
-import { getAccessToken } from '../stores/accessToken.store';
+import { getAccessToken } from '../local/storage';
 import type { QueryParams } from '../types/query.type';
 
 interface Config {
@@ -43,9 +43,12 @@ const request = async <T = unknown>(config: Config): Promise<T> => {
     init,
   );
 
-  if (!response.ok) throw new ApiError(response.statusText, response.status);
+  if (!response.ok) {
+    const json = await response.json().catch(() => null);
+    throw new ApiError(json?.message ?? 'Erreur inconnue', response.status);
+  }
 
-  return await response.json();
+  return response.json() as Promise<T>;
 };
 
 export default request;
