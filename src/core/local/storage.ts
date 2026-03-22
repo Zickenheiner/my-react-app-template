@@ -24,6 +24,11 @@ const removeRefreshToken = () => {
   secureLocalStorage.removeItem('refreshToken');
 };
 
+const clearTokens = () => {
+  removeAccessToken();
+  removeRefreshToken();
+};
+
 export {
   getAccessToken,
   getRefreshToken,
@@ -31,4 +36,5 @@ export {
   setRefreshToken,
   removeAccessToken,
   removeRefreshToken,
+  clearTokens,
 };
