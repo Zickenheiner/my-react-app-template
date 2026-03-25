@@ -1,87 +1,119 @@
-# CLAUDE.md
+# Conventions & Règles du Projet Frontend
 
-Ce fichier fournit des indications à Claude Code (claude.ai/code) pour travailler dans ce dépôt.
+## Stack technique
 
-## Commandes
+- **Framework** : React 19 + TypeScript strict
+- **Build** : Vite 7
+- **Routing** : React Router DOM v7
+- **State serveur** : TanStack React Query v5
+- **State client** : Zustand v5
+- **Formulaires** : React Hook Form v7 + Zod v4
+- **UI** : shadcn/ui v4 + Radix UI + Tailwind CSS v4
+- **Animations** : Motion (Framer Motion v12)
+- **Icônes** : Lucide React
+- **Typographies** : @fontsource-variable/dm-sans, @fontsource-variable/geist, @fontsource/jetbrains-mono
 
-```bash
-npm run dev        # Démarrer le serveur de développement (port 3000)
-npm run build      # Vérification TypeScript + build Vite
-npm run preview    # Prévisualiser le build de production
-npm run fix        # Formater le code avec Prettier
+## Architecture — Clean Architecture par Feature
+
+Chaque feature suit cette arborescence (générée par `feature.sh` et `files.sh`) :
+
+```
+src/features/<feature-name>/
+├── data/
+│   ├── datasources/       # Appels API (classes avec méthodes HTTP)
+│   ├── repositories/      # Implémentations concrètes des repositories
+│   ├── mappers/           # DTO → Entity
+│   └── dtos/              # Types des réponses/requêtes API
+├── domain/
+│   ├── repositories/      # Interfaces (contrats)
+│   ├── entities/          # Types métier
+│   └── hooks/             # Hooks React (TanStack Query, logique métier)
+└── presentation/
+    ├── pages/             # Composants page (rattachés au router)
+    └── components/        # Composants UI spécifiques à la feature
 ```
 
-Aucun outil de test n'est configuré. Il n'y a pas de script de lint — Prettier (`npm run fix`) est le seul outil de formatage.
+## Fichiers core existants
 
-## Environnement
+- `@/core/config/api.ts` — Wrapper `request<T>(config)` avec refresh token automatique
+- `@/core/config/queryClient.ts` — Instance TanStack Query
+- `@/core/constants/endpoints.ts` — Objet des URLs d'API par entité
+- `@/core/constants/methods.ts` — Constantes HTTP (GET, POST, PATCH, DELETE)
+- `@/core/constants/routes.ts` — Constantes des routes frontend
+- `@/core/local/storage.ts` — Gestion tokens (access/refresh) via react-secure-storage
+- `@/core/utils/jwt.ts` — Vérification expiration token
+- `@/core/errors/api.error.ts` — Classe ApiError custom
+- `@/core/types/query.type.ts` — Type QueryParams
 
-Copier `.env.sample` vers `.env.local` et renseigner `VITE_API_URL` avec l'URL de base de l'API backend (ex. `http://localhost:3310/api/`).
+## Conventions de code
 
-## Architecture
+### Naming
 
-**Stack :** React 19 + TypeScript, Vite, React Router DOM 7, TanStack React Query 5, Zustand, Tailwind CSS 4, React Hook Form + Zod, icônes Lucide, animations Motion.
+- **Fichiers** : kebab-case (`user-profile.hook.ts`, `user-profile.entity.ts`)
+- **Composants** : PascalCase (`UserProfilePage.tsx`, `UserCard.tsx`)
+- **Hooks** : camelCase préfixé `use` (`useUserProfile`, `useCreateTransaction`)
+- **Classes** : PascalCase (`UserApi`, `UserRepositoryImpl`, `UserMapper`)
+- **Interfaces** : PascalCase (`UserEntity`, `UserRepository`, `UserResponseDto`)
+- **Suffixes obligatoires** :
+  - `.api.ts` pour les datasources
+  - `.repository.impl.ts` pour les implémentations
+  - `.repository.ts` pour les interfaces
+  - `.mapper.ts` pour les mappers
+  - `.dto.ts` pour les DTOs
+  - `.entity.ts` pour les entités
+  - `.hook.ts` pour les hooks
 
-### Routing et gardes d'authentification
+### Patterns obligatoires
 
-`src/app/Router.tsx` définit toutes les routes. Chaque route est encapsulée dans `<Public>` ou `<Private>` :
+1. **API Datasource** : Classe avec `private readonly baseUrl` initialisé via `endpoints`
+2. **Repository** : Interface dans `domain/`, implémentation dans `data/` qui utilise l'API + le mapper
+3. **Mapper** : Méthode `toEntity(dto)` qui transforme le DTO en Entity
+4. **Hooks** : Utiliser `useQuery` / `useMutation` de TanStack Query, instancier le repository dans le hook
+5. **Pages** : Un seul composant page par route, qui orchestre les hooks et les composants
+6. **Formulaires** : React Hook Form + Zod schema, toujours valider côté client
+7. **Requêtes API** : Toujours utiliser le wrapper `request` de `@/core/config/api.ts`
 
-- `Public` — redirige les utilisateurs authentifiés (ex. `/login`)
-- `Private` — redirige les utilisateurs non authentifiés vers `/login`
+### API & Backend
 
-L'état d'authentification est déterminé par la présence d'un access token dans le stockage local sécurisé (`src/core/local/`). Il n'y a pas de middleware d'auth centralisé — les gardes sont au niveau des routes.
+L'API backend n'existe pas encore. Les agents doivent :
 
-### Couche API
+- Inventer les DTOs (request/response) en se basant sur les besoins de la US
+- Créer les entities avec les champs nécessaires
+- Implémenter les hooks avec de vrais appels API (le backend sera créé après)
+- Ajouter les endpoints dans `@/core/constants/endpoints.ts`
 
-`src/core/config/api.ts` est le wrapper fetch unique. Il :
+### Routing
 
-- Lit `VITE_API_URL` pour l'URL de base
-- Injecte automatiquement `Authorization: Bearer <token>` depuis le stockage local sécurisé
-- Accepte des génériques pour des réponses typées
-- Lève une `ApiError` (depuis `src/core/errors/`) en cas de réponse non-OK
+- Les routes publiques passent par le composant `Public` (redirige si authentifié)
+- Les routes privées passent par `Private` + `Layout` (redirige si non authentifié)
+- Ajouter les nouvelles routes dans `@/core/constants/routes.ts` ET dans `src/app/Router.tsx`
 
-Les constantes des méthodes HTTP sont dans `src/core/constants/methods.ts`. Les endpoints API sont dans `src/core/constants/endpoints.ts`.
+### shadcn/ui
 
-### Pattern de développement des fonctionnalités
+- Installer les composants à la demande avec `npx shadcn@latest add <component>`
+- Tous les composants shadcn vont dans `src/components/ui/`
+- Utiliser les composants shadcn comme base, customiser avec Tailwind
+- Respecter la charte graphique définie dans `index.css` (couleurs, typographies, border-radius)
 
-**Ne jamais créer manuellement** la structure d'une feature ou ses fichiers de base.
+### Styling
 
-```bash
-./feature.sh <nom-feature>             # crée src/features/<nom>/{data,domain,presentation}/
-./files.sh <nom-fichier> <nom-feature> # génère les fichiers de base pré-remplis
-```
+- Tailwind CSS v4 avec variables CSS custom dans `index.css`
+- Utiliser `cn()` (clsx + tailwind-merge) pour les classes conditionnelles
+- Animations avec Motion (`motion` package) pour les transitions complexes
+- `tw-animate-css` pour les animations Tailwind de base
 
-`files.sh` génère : `.dto.ts`, `.api.ts`, `.mapper.ts`, `.repository.impl.ts`, `.entity.ts`, `.repository.ts`, `.hook.ts`. Si la feature n'existe pas, il appelle automatiquement `feature.sh`.
+### Git
 
-Architecture stricte : **data** (dtos → api → mapper → repository.impl) → **domain** (entity → repository → hook) → **presentation** (pages, components).
+- Format de commit : `feat(US-XX): description courte en anglais`
+- Un commit + push par user story complétée
+- Toujours vérifier que `tsc --noEmit` et `eslint` passent avant de commit
 
-Règles clés :
+## Commandes disponibles
 
-- Le hook instancie le repository **en dehors** de la fonction (une seule instance) et renomme tous les champs retournés pour éviter les conflits.
-- La présentation consomme uniquement les hooks — aucun appel direct à l'API ou au repository.
-- Les chemins de routes sont dans `src/core/constants/routes.ts`.
+- `/frontend <US-number> [--plan]` — Implémente une user story complète
+- `/design-system` — Configure le design system depuis la charte graphique Notion
 
-### Gestion d'état
+## Scripts disponibles
 
-- **État serveur :** React Query (`src/core/config/queryClient.ts`) — utiliser `useQuery`/`useMutation` pour toutes les données API.
-- **État client :** Les stores Zustand vont dans `src/core/stores/` (actuellement vide).
-
-### Conventions de code
-
-Toujours utiliser les **fonctions fléchées**, sauf pour les composants React qui utilisent la déclaration `function`.
-
-```ts
-// ✅ Fonction fléchée
-const getUser = async (id: string) => { ... }
-
-// ✅ Composant React
-function UserCard({ name }: Props) { ... }
-```
-
-### Styles
-
-Classes utilitaires Tailwind CSS 4. Utiliser le helper `cn()` de `src/core/utils/` (encapsule `tailwind-merge`) pour combiner conditionnellement des classes CSS.
-
-### Alias de chemin
-
-`@/` pointe vers `src/` — à utiliser pour tous les imports internes au projet.
-/clear
+- `./feature.sh <feature-name>` — Crée l'arborescence d'une feature
+- `./files.sh <file-name> <feature-name>` — Génère les fichiers de base (API, repo, mapper, DTO, entity, hook)
