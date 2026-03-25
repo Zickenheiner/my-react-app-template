@@ -46,7 +46,7 @@ src/features/<feature-name>/
 
 ### 3. Générer les fichiers de base
 
-Pour chaque fichier listé dans le plan, exécute :
+Si le plan contient des entrées `files.sh` (i.e. la US implique des appels API), pour chaque fichier listé exécute :
 
 ```bash
 ./files.sh <file-name> <feature-name>
@@ -61,6 +61,8 @@ Cela génère les fichiers pré-remplis :
 - `<name>.repository.ts` — Interface repository
 - `<name>.entity.ts` — Interface entity
 - `<name>.hook.ts` — Fichier hook vide
+
+Si le plan ne contient aucune entrée `files.sh`, passe directement à l'étape 4.
 
 ### 4. Créer les fichiers de présentation vides
 

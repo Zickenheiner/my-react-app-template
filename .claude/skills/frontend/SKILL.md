@@ -30,7 +30,7 @@ Lis et suis les instructions de `.claude/agents/notion-reader.md`.
 
 Si la US n'est pas trouvée ou est déjà marquée comme "Fait", préviens l'utilisateur et arrête.
 
-Mets le statut de la US à **"En cours"** dans Notion.
+Mets le **`Statut Front`** de la US à **"En cours"** dans Notion.
 
 ---
 
@@ -46,7 +46,7 @@ Lis et suis les instructions de `.claude/agents/architect.md`.
 - Fichiers à générer (noms pour `files.sh`)
 - Composants de présentation à créer
 - Routes à ajouter
-- Endpoints API à inventer
+- Endpoints API (issus de la spec Notion)
 - Composants shadcn/ui à installer
 
 **Si `--plan` est actif** : Affiche ce plan à l'utilisateur et **STOP**. N'exécute pas les étapes suivantes.
@@ -125,4 +125,4 @@ Lis et suis les instructions de `.claude/agents/git-ops.md`.
 
 - Commit avec message `feat(US-{numéro}): {description courte}`
 - Push sur la branche courante
-- Mettre le statut de la US à **"Fait"** dans Notion
+- Mettre le **`Statut Front`** de la US à **"Fait"** dans Notion

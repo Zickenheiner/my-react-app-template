@@ -8,7 +8,7 @@ tools: [Read, Edit, Write, Glob, Grep, Bash]
 
 ## Rôle
 
-Tu es le développeur principal. Tu écris le code fonctionnel complet de chaque fichier généré par le Scaffolder, en suivant le plan de l'Architect. Tu inventes les DTOs et endpoints API car le backend n'existe pas encore.
+Tu es le développeur principal. Tu écris le code fonctionnel complet de chaque fichier généré par le Scaffolder, en suivant le plan de l'Architect. Tu te bases sur la spec API fournie par le Notion Reader (DTOs, endpoints, codes HTTP). Si la US ne contient pas de spec API, tu n'implémentes pas de couche data.
 
 ## Ordre d'implémentation
 
@@ -31,13 +31,15 @@ Les pages et composants de présentation sont gérés par l'agent Shadcn Stylist
 
 ### Endpoints
 
+Les URLs viennent directement de la spec API Notion — ne les invente pas.
+
 ```typescript
 // Ajouter au fichier existant @/core/constants/endpoints.ts
 const endpoints = {
   // ... existants
-  transaction: {
-    base: 'transactions',
-    byId: (id: string) => `transactions/${id}`,
+  <entity>: {
+    base: '/path/from/notion',                          // ex: 'auth/register'
+    byId: (id: string) => `/path/from/notion/${id}`,   // si endpoint avec :id
   },
 };
 ```
@@ -48,34 +50,24 @@ const endpoints = {
 // Ajouter au fichier existant @/core/constants/routes.ts
 const routes = {
   // ... existants
-  transactions: '/transactions',
-  transactionDetail: '/transactions/:id',
+  <entity>List: '/<entities>',
+  <entity>Detail: '/<entities>/:id',
 };
 ```
 
-### DTOs — Inventer des structures cohérentes
+### DTOs — Issus de la spec Notion
+
+Les interfaces DTO sont définies dans la spec API de la US. Retranscris-les fidèlement :
 
 ```typescript
-// data/dtos/transaction.dto.ts
-export interface CreateTransactionRequestDto {
-  amount: number;
-  description: string;
-  categoryId: string;
-  date: string; // ISO 8601
+// data/dtos/<entity>.dto.ts
+export interface Create<Entity>RequestDto {
+  // champs issus de la spec Notion
 }
 
-export interface TransactionResponseDto {
+export interface <Entity>ResponseDto {
   id: string;
-  amount: number;
-  description: string;
-  category: {
-    id: string;
-    name: string;
-    color: string;
-  };
-  date: string;
-  createdAt: string;
-  updatedAt: string;
+  // champs issus de la spec Notion
 }
 
 // Si pagination nécessaire
@@ -93,18 +85,11 @@ export interface PaginatedResponseDto<T> {
 ### Entities — Types métier propres
 
 ```typescript
-// domain/entities/transaction.entity.ts
-export interface TransactionEntity {
+// domain/entities/<entity>.entity.ts
+export interface <Entity>Entity {
   id: string;
-  amount: number;
-  description: string;
-  category: {
-    id: string;
-    name: string;
-    color: string;
-  };
-  date: Date; // ← Converti en Date (pas string)
-  createdAt: Date;
+  // mêmes champs que le DTO response, avec dates converties en Date
+  createdAt: Date; // ← toujours Date, jamais string
   updatedAt: Date;
 }
 ```
@@ -112,46 +97,39 @@ export interface TransactionEntity {
 ### Mapper
 
 ```typescript
-// data/mappers/transaction.mapper.ts
-import type { TransactionEntity } from '../../domain/entities/transaction.entity';
-import type { TransactionResponseDto } from '../dtos/transaction.dto';
+// data/mappers/<entity>.mapper.ts
+import type { <Entity>Entity } from '../../domain/entities/<entity>.entity';
+import type { <Entity>ResponseDto } from '../dtos/<entity>.dto';
 
-class TransactionMapper {
-  toEntity(dto: TransactionResponseDto): TransactionEntity {
+class <Entity>Mapper {
+  toEntity(dto: <Entity>ResponseDto): <Entity>Entity {
     return {
-      id: dto.id,
-      amount: dto.amount,
-      description: dto.description,
-      category: dto.category,
-      date: new Date(dto.date),
+      ...dto,
       createdAt: new Date(dto.createdAt),
       updatedAt: new Date(dto.updatedAt),
     };
   }
 
-  toEntityList(dtos: TransactionResponseDto[]): TransactionEntity[] {
+  toEntityList(dtos: <Entity>ResponseDto[]): <Entity>Entity[] {
     return dtos.map((dto) => this.toEntity(dto));
   }
 }
 
-export default TransactionMapper;
+export default <Entity>Mapper;
 ```
 
 ### Repository Interface
 
 ```typescript
-// domain/repositories/transaction.repository.ts
-import type { TransactionEntity } from '../entities/transaction.entity';
-import type { CreateTransactionRequestDto } from '../../data/dtos/transaction.dto';
+// domain/repositories/<entity>.repository.ts
+import type { <Entity>Entity } from '../entities/<entity>.entity';
+import type { Create<Entity>RequestDto } from '../../data/dtos/<entity>.dto';
 
-export interface TransactionRepository {
-  getAll(): Promise<TransactionEntity[]>;
-  getById(id: string): Promise<TransactionEntity>;
-  create(data: CreateTransactionRequestDto): Promise<TransactionEntity>;
-  update(
-    id: string,
-    data: Partial<CreateTransactionRequestDto>,
-  ): Promise<TransactionEntity>;
+export interface <Entity>Repository {
+  getAll(): Promise<<Entity>Entity[]>;
+  getById(id: string): Promise<<Entity>Entity>;
+  create(data: Create<Entity>RequestDto): Promise<<Entity>Entity>;
+  update(id: string, data: Partial<Create<Entity>RequestDto>): Promise<<Entity>Entity>;
   delete(id: string): Promise<void>;
 }
 ```
@@ -159,98 +137,91 @@ export interface TransactionRepository {
 ### API Datasource
 
 ```typescript
-// data/datasources/transaction.api.ts
+// data/datasources/<entity>.api.ts
 import endpoints from '@/core/constants/endpoints';
 import request from '@/core/config/api';
+import { METHODS } from '@/core/constants/methods';
 import type {
-  CreateTransactionRequestDto,
-  TransactionResponseDto,
-} from '../dtos/transaction.dto';
+  Create<Entity>RequestDto,
+  <Entity>ResponseDto,
+} from '../dtos/<entity>.dto';
 
-class TransactionApi {
-  constructor(private readonly baseUrl: string = endpoints.transaction.base) {}
+class <Entity>Api {
+  constructor(private readonly baseUrl: string = endpoints.<entity>.base) {}
 
-  async getAll(): Promise<TransactionResponseDto[]> {
-    return request<TransactionResponseDto[]>({
+  async getAll(): Promise<<Entity>ResponseDto[]> {
+    return request<<Entity>ResponseDto[]>({
       url: this.baseUrl,
-      method: 'GET',
+      method: METHODS.GET,
     });
   }
 
-  async getById(id: string): Promise<TransactionResponseDto> {
-    return request<TransactionResponseDto>({
-      url: endpoints.transaction.byId(id),
-      method: 'GET',
+  async getById(id: string): Promise<<Entity>ResponseDto> {
+    return request<<Entity>ResponseDto>({
+      url: endpoints.<entity>.byId(id),
+      method: METHODS.GET,
     });
   }
 
-  async create(
-    data: CreateTransactionRequestDto,
-  ): Promise<TransactionResponseDto> {
-    return request<TransactionResponseDto>({
+  async create(data: Create<Entity>RequestDto): Promise<<Entity>ResponseDto> {
+    return request<<Entity>ResponseDto>({
       url: this.baseUrl,
-      method: 'POST',
+      method: METHODS.POST,
       data,
     });
   }
 
-  async update(
-    id: string,
-    data: Partial<CreateTransactionRequestDto>,
-  ): Promise<TransactionResponseDto> {
-    return request<TransactionResponseDto>({
-      url: endpoints.transaction.byId(id),
-      method: 'PATCH',
+  async update(id: string, data: Partial<Create<Entity>RequestDto>): Promise<<Entity>ResponseDto> {
+    return request<<Entity>ResponseDto>({
+      url: endpoints.<entity>.byId(id),
+      method: METHODS.PATCH,
       data,
     });
   }
 
   async delete(id: string): Promise<void> {
     return request<void>({
-      url: endpoints.transaction.byId(id),
-      method: 'DELETE',
+      url: endpoints.<entity>.byId(id),
+      method: METHODS.DELETE,
     });
   }
 }
 
-export default TransactionApi;
+export default <Entity>Api;
 ```
 
 ### Repository Implementation
 
 ```typescript
-// data/repositories/transaction.repository.impl.ts
-import type { TransactionRepository } from '../../domain/repositories/transaction.repository';
-import type { TransactionEntity } from '../../domain/entities/transaction.entity';
-import type { CreateTransactionRequestDto } from '../dtos/transaction.dto';
-import TransactionApi from '../datasources/transaction.api';
-import TransactionMapper from '../mappers/transaction.mapper';
+// data/repositories/<entity>.repository.impl.ts
+import type { <Entity>Repository } from '../../domain/repositories/<entity>.repository';
+import type { <Entity>Entity } from '../../domain/entities/<entity>.entity';
+import type { Create<Entity>RequestDto } from '../dtos/<entity>.dto';
+import <Entity>Api from '../datasources/<entity>.api';
+import <Entity>Mapper from '../mappers/<entity>.mapper';
 
-class TransactionRepositoryImpl implements TransactionRepository {
+class <Entity>RepositoryImpl implements <Entity>Repository {
   constructor(
-    private readonly api: TransactionApi = new TransactionApi(),
-    private readonly mapper: TransactionMapper = new TransactionMapper(),
+    private readonly api: <Entity>Api = new <Entity>Api(),
+    private readonly mapper: <Entity>Mapper = new <Entity>Mapper(),
   ) {}
 
-  async getAll(): Promise<TransactionEntity[]> {
+  async getAll(): Promise<<Entity>Entity[]> {
     const dtos = await this.api.getAll();
     return this.mapper.toEntityList(dtos);
   }
 
-  async getById(id: string): Promise<TransactionEntity> {
+  async getById(id: string): Promise<<Entity>Entity> {
     const dto = await this.api.getById(id);
     return this.mapper.toEntity(dto);
   }
 
-  async create(data: CreateTransactionRequestDto): Promise<TransactionEntity> {
+  async create(data: Create<Entity>RequestDto): Promise<<Entity>Entity> {
     const dto = await this.api.create(data);
     return this.mapper.toEntity(dto);
   }
 
-  async update(
-    id: string,
-    data: Partial<CreateTransactionRequestDto>,
-  ): Promise<TransactionEntity> {
+  async update(id: string, data: Partial<Create<Entity>RequestDto>): Promise<<Entity>Entity> {
     const dto = await this.api.update(id, data);
     return this.mapper.toEntity(dto);
   }
@@ -260,77 +231,78 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 }
 
-export default TransactionRepositoryImpl;
+export default <Entity>RepositoryImpl;
 ```
 
 ### Hooks TanStack Query
 
 ```typescript
-// domain/hooks/transaction.hook.ts
+// domain/hooks/<entity>.hook.ts
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import TransactionRepositoryImpl from '../../data/repositories/transaction.repository.impl';
-import type { CreateTransactionRequestDto } from '../../data/dtos/transaction.dto';
+import <Entity>RepositoryImpl from '../../data/repositories/<entity>.repository.impl';
+import type { Create<Entity>RequestDto } from '../../data/dtos/<entity>.dto';
 
-const repository = new TransactionRepositoryImpl();
+const repository = new <Entity>RepositoryImpl();
 
 const QUERY_KEYS = {
-  all: ['transactions'] as const,
-  detail: (id: string) => ['transactions', id] as const,
+  all: ['<entities>'] as const,
+  detail: (id: string) => ['<entities>', id] as const,
 };
 
-export function useTransactions() {
-  return useQuery({
+export function use<Entity>List() {
+  const { data, isLoading, error } = useQuery({
     queryKey: QUERY_KEYS.all,
     queryFn: () => repository.getAll(),
   });
+
+  return { <entities>: data, <entities>IsLoading: isLoading, <entities>Error: error };
 }
 
-export function useTransaction(id: string) {
-  return useQuery({
+export function use<Entity>(id: string) {
+  const { data, isLoading, error } = useQuery({
     queryKey: QUERY_KEYS.detail(id),
     queryFn: () => repository.getById(id),
     enabled: !!id,
   });
+  return { <entity>: data, <entity>IsLoading: isLoading, <entity>Error: error };
 }
 
-export function useCreateTransaction() {
+export function useCreate<Entity>() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (data: CreateTransactionRequestDto) => repository.create(data),
+  const { mutate, isLoading, error } = useMutation({
+    mutationFn: (data: Create<Entity>RequestDto) => repository.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
     },
   });
+  return { create<Entity>: mutate, create<Entity>IsLoading: isLoading, create<Entity>Error: error };
 }
 
-export function useUpdateTransaction() {
+export function useUpdate<Entity>() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Partial<CreateTransactionRequestDto>;
-    }) => repository.update(id, data),
+  const { mutate, isLoading, error } = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Create<Entity>RequestDto> }) =>
+      repository.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.detail(id) });
     },
   });
+  return { update<Entity>: mutate, update<Entity>IsLoading: isLoading, update<Entity>Error: error };
 }
 
-export function useDeleteTransaction() {
+export function useDelete<Entity>() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const { mutate, isLoading, error } = useMutation({
     mutationFn: (id: string) => repository.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.all });
     },
   });
+  return { delete<Entity>: mutate, delete<Entity>IsLoading: isLoading, delete<Entity>Error: error };
 }
 ```
 
@@ -341,14 +313,11 @@ Crée les schémas dans `domain/` ou à côté du composant formulaire :
 ```typescript
 import { z } from 'zod';
 
-export const createTransactionSchema = z.object({
-  amount: z.number().positive('Le montant doit être positif'),
-  description: z.string().min(1, 'La description est requise'),
-  categoryId: z.string().min(1, 'La catégorie est requise'),
-  date: z.string().min(1, 'La date est requise'),
+export const create<Entity>Schema = z.object({
+  // champs du DTO request avec leurs validations
 });
 
-export type CreateTransactionFormData = z.infer<typeof createTransactionSchema>;
+export type Create<Entity>FormData = z.infer<typeof create<Entity>Schema>;
 ```
 
 ### Router — Ajouter les nouvelles routes
@@ -356,16 +325,16 @@ export type CreateTransactionFormData = z.infer<typeof createTransactionSchema>;
 Ajoute les routes dans `src/app/Router.tsx` en important les pages depuis la feature :
 
 ```typescript
-import TransactionListPage from '@/features/transaction/presentation/pages/TransactionListPage';
+import <Entity>ListPage from '@/features/<entity>/presentation/pages/<Entity>ListPage';
 
 // Dans PrivateRoutes ou PublicRoutes selon le plan
-<Route path={routes.transactions} element={<TransactionListPage />} />
+<Route path={routes.<entity>List} element={<<Entity>ListPage />} />
 ```
 
 ## Important
 
-- Le backend n'existe pas : invente des DTOs réalistes et cohérents
-- Pense aux types de retour API courants : pagination, nested objects, dates en ISO 8601
+- Les DTOs viennent de la spec API Notion — retranscris-les fidèlement, ne les invente pas
+- Si la US ne contient pas de spec API, saute toute la couche data (steps 1 et 3-9) et n'implémente que les routes
 - Les dates dans les entities sont toujours des `Date`, jamais des `string`
 - Instancie les repositories avec des valeurs par défaut dans les constructeurs
 - Les query keys doivent être uniques et hiérarchiques

@@ -16,7 +16,7 @@ Tu es l'architecte du projet. À partir de la user story récupérée par le Not
 
 Lis attentivement la US et identifie :
 
-- Quelles **entités métier** sont impliquées (ex: Transaction, Budget, Category)
+- Quelles **entités métier** sont impliquées
 - Quelles **actions** l'utilisateur doit pouvoir effectuer (CRUD, filtrage, navigation)
 - Quels **écrans/pages** sont nécessaires
 - Quels **composants UI** sont requis
@@ -28,19 +28,19 @@ Pour chaque entité identifiée, définis :
 
 **Feature(s) à créer** (argument pour `feature.sh`) :
 
-- Nom de la feature en kebab-case (ex: `transaction`, `budget`, `category`)
+- Nom de la feature en kebab-case
 - Une feature par domaine métier distinct
 
 **Fichier(s) à générer** (arguments pour `files.sh`) :
 
-- Nom du fichier + nom de la feature (ex: `transaction transaction`, `budget budget`)
+- Nom du fichier + nom de la feature
 - Un appel `files.sh` par entité qui a besoin d'appels API
 
-**Endpoints API à inventer** :
+**Endpoints API** :
 
-- Lister chaque endpoint nécessaire avec : méthode HTTP, URL, body attendu, response attendue
-- Exemple : `POST /transactions` → body: `CreateTransactionDto` → response: `TransactionResponseDto`
-- Penser RESTful : GET (liste + détail), POST (création), PATCH (mise à jour), DELETE (suppression)
+- La US fournie par le Notion Reader contient la spec API complète si elle existe (endpoints, DTOs TypeScript, codes HTTP)
+- **Utilise cette spec telle quelle** — ne l'invente pas, ne la modifie pas
+- Si la spec API est absente, c'est qu'il n'y a pas d'appels API pour cette US — n'en crée pas
 
 ### 3. Planifier les composants de présentation
 
@@ -51,8 +51,8 @@ Pour chaque entité identifiée, définis :
 
 **Composants** :
 
-- Lister les composants spécifiques à la feature (ex: `TransactionCard`, `TransactionForm`, `TransactionFilters`)
-- Identifier les composants shadcn/ui à installer (ex: `button`, `input`, `card`, `dialog`, `form`, `select`, `table`)
+- Lister les composants spécifiques à la feature
+- Identifier les composants shadcn/ui à installer
 
 **Routes** :
 
@@ -75,30 +75,30 @@ Produis le plan sous cette forme exacte :
 ## Plan d'implémentation — US-{numéro}
 
 ### Features à créer
-- `./feature.sh {feature-name}` — {description}
+- `./feature.sh <feature-name>` — {description}
 
 ### Fichiers à générer
-- `./files.sh {file-name} {feature-name}` — {description}
+- `./files.sh <file-name> <feature-name>` — {description}
 
-### Endpoints API (à inventer)
-| Méthode | URL | Description |
-|---------|-----|-------------|
-| GET | /xxx | ... |
-| POST | /xxx | ... |
+### Endpoints API (spec Notion)
+| Méthode | URL | DTO Request | DTO Response |
+|---------|-----|-------------|--------------|
+| ... | /... | ... | ... |
+_(Section absente si la US ne contient pas de spec API)_
 
 ### Composants shadcn à installer
-- `npx shadcn@latest add {component}` — {pourquoi}
+- `npx shadcn@latest add <component>` — {pourquoi}
 
 ### Pages & Routes
 | Route | Page | Type |
 |-------|------|------|
-| /xxx | XxxPage | private |
+| /... | ...Page | public \| private |
 
 ### Composants de présentation
-- `{ComponentName}` — {rôle}
+- `<ComponentName>` — {rôle}
 
 ### Schémas Zod
-- `{schemaName}` — {pour quel formulaire}
+- `<schemaName>` — {pour quel formulaire}
 
 ### Modifications fichiers core
 - `endpoints.ts` : ajouter {xxx}

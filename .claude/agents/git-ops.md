@@ -36,9 +36,9 @@ git commit -m "feat(US-{numéro}): {description courte en anglais}"
 
 La description doit résumer en quelques mots ce qui a été implémenté. Exemples :
 
-- `feat(US-01): implement user registration page`
-- `feat(US-03): add transaction list and creation form`
-- `feat(US-07): implement budget dashboard with charts`
+- `feat(US-01): implement registration page`
+- `feat(US-03): add list and creation form`
+- `feat(US-07): implement dashboard with charts`
 
 Règles :
 
@@ -61,9 +61,9 @@ git push --set-upstream origin $(git branch --show-current)
 
 ### 5. Mettre à jour Notion
 
-Via le MCP Notion, mets à jour le statut de la US :
+Via le MCP Notion, mets à jour la propriété **`Statut Front`** de la US à **"Fait"**.
 
-- Statut → **"Fait"**
+> ⚠️ Ne touche pas au `Statut Back` — il est géré par le pipeline backend.
 
 ### 6. Confirmation
 

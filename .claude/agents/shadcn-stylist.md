@@ -37,22 +37,17 @@ Pour chaque composant listé dans le plan, crée un fichier dans `presentation/c
 #### Conventions de composants
 
 ```typescript
-// presentation/components/TransactionCard.tsx
+// presentation/components/<EntityCard>.tsx
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import type { TransactionEntity } from '../../domain/entities/transaction.entity';
+import type { <Entity>Entity } from '../../domain/entities/<entity>.entity';
 
-interface TransactionCardProps {
-  transaction: TransactionEntity;
+interface Props {
+  <entity>: <Entity>Entity;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
 }
 
-export default function TransactionCard({
-  transaction,
-  onEdit,
-  onDelete,
-}: TransactionCardProps) {
+export default function <Entity>Card({ <entity>, onEdit, onDelete }: Props) {
   // ... composant complet
 }
 ```
@@ -70,46 +65,35 @@ Règles :
 Chaque page orchestre les hooks et les composants :
 
 ```typescript
-// presentation/pages/TransactionListPage.tsx
-import { useTransactions, useDeleteTransaction } from '../../domain/hooks/transaction.hook';
-import TransactionCard from '../components/TransactionCard';
+// presentation/pages/<Entity>ListPage.tsx
+import { use<Entity>List } from '../../domain/hooks/<entity>.hook';
+import <Entity>Card from '../components/<Entity>Card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import routes from '@/core/constants/routes';
 
-export default function TransactionListPage() {
-  const { data: transactions, isLoading, isError } = useTransactions();
-  const deleteMutation = useDeleteTransaction();
+export default function <Entity>ListPage() {
+  const { <entities>, <entities>IsLoading, <entities>Error } = use<Entity>List();
   const navigate = useNavigate();
 
-  // Loading state
-  if (isLoading) return <TransactionListSkeleton />;
+  if (<entities>IsLoading) return <<Entity>ListSkeleton />;
+  if (<entities>Error) return <<Entity>ListError />;
+  if (!<entities>?.length) return <<Entity>ListEmpty />;
 
-  // Error state
-  if (isError) return <TransactionListError />;
-
-  // Empty state
-  if (!transactions?.length) return <TransactionListEmpty />;
-
-  // Success state
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Transactions</h1>
-        <Button onClick={() => navigate(routes.transactionCreate)}>
+        <h1 className="text-2xl font-semibold">{/* titre */}</h1>
+        <Button onClick={() => navigate(routes.<entity>Create)}>
           <Plus className="mr-2 h-4 w-4" />
-          Nouvelle transaction
+          {/* label */}
         </Button>
       </div>
       <div className="grid gap-4">
-        {transactions.map((tx) => (
-          <TransactionCard
-            key={tx.id}
-            transaction={tx}
-            onDelete={(id) => deleteMutation.mutate(id)}
-          />
+        {<entities>.map((item) => (
+          <Entity>Card key={item.id} <entity>={item} />
         ))}
       </div>
     </div>
@@ -126,7 +110,7 @@ Chaque page doit gérer ces 4 états visuels :
 Utiliser des `Skeleton` shadcn qui reproduisent la forme du contenu final :
 
 ```typescript
-function TransactionListSkeleton() {
+function <Entity>ListSkeleton() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <Skeleton className="h-8 w-48" />
@@ -145,11 +129,11 @@ function TransactionListSkeleton() {
 Message clair + action de retry :
 
 ```typescript
-function TransactionListError() {
+function <Entity>ListError() {
   return (
     <div className="container mx-auto p-6 flex flex-col items-center justify-center gap-4 min-h-[50vh]">
       <AlertCircle className="h-12 w-12 text-destructive" />
-      <p className="text-muted-foreground">Impossible de charger les transactions</p>
+      <p className="text-muted-foreground">{/* message d'erreur */}</p>
       <Button variant="outline" onClick={() => window.location.reload()}>
         Réessayer
       </Button>
@@ -163,12 +147,12 @@ function TransactionListError() {
 Illustration/icône + message + call to action :
 
 ```typescript
-function TransactionListEmpty() {
+function <Entity>ListEmpty() {
   return (
     <div className="container mx-auto p-6 flex flex-col items-center justify-center gap-4 min-h-[50vh]">
       <Inbox className="h-12 w-12 text-muted-foreground" />
-      <p className="text-muted-foreground">Aucune transaction pour le moment</p>
-      <Button>Créer une transaction</Button>
+      <p className="text-muted-foreground">{/* message vide */}</p>
+      <Button>{/* call to action */}</Button>
     </div>
   );
 }
@@ -185,19 +169,16 @@ Pour les formulaires, combiner React Hook Form, Zod et les composants shadcn For
 ```typescript
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createTransactionSchema, type CreateTransactionFormData } from '../../domain/schemas/transaction.schema';
+import { create<Entity>Schema, type Create<Entity>FormData } from '../../domain/schemas/<entity>.schema';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-export default function TransactionForm({ onSubmit }: { onSubmit: (data: CreateTransactionFormData) => void }) {
-  const form = useForm<CreateTransactionFormData>({
-    resolver: zodResolver(createTransactionSchema),
+export default function <Entity>Form({ onSubmit }: { onSubmit: (data: Create<Entity>FormData) => void }) {
+  const form = useForm<Create<Entity>FormData>({
+    resolver: zodResolver(create<Entity>Schema),
     defaultValues: {
-      amount: 0,
-      description: '',
-      categoryId: '',
-      date: new Date().toISOString().split('T')[0],
+      // valeurs par défaut selon les champs du schéma
     },
   });
 
@@ -206,19 +187,19 @@ export default function TransactionForm({ onSubmit }: { onSubmit: (data: CreateT
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="description"
+          name="<fieldName>"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{/* label */}</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: Courses alimentaires" {...field} />
+                <Input {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         {/* ... autres champs */}
-        <Button type="submit" className="w-full">Créer</Button>
+        <Button type="submit" className="w-full">{/* label submit */}</Button>
       </form>
     </Form>
   );
@@ -319,3 +300,4 @@ import { cn } from '@/core/utils/cn';
 - Pas de texte en dur : utiliser des variables ou des props (sauf pour les labels UI standards en français)
 - Les labels et textes UI sont en **français** (comme le reste de l'app)
 - Les noms de code (composants, variables, fonctions) restent en **anglais**
+- Les hooks exposent des propriétés nommées (ex: `{ <entities>, <entities>IsLoading }`) — utilise ces noms dans les pages
